@@ -20,6 +20,7 @@ func (ctrl *GetPaymentButtonsCtrl) Execute(w http.ResponseWriter, r *http.Reques
 
 	aggregator := services.NewAggregator([]services.IPaymentService{
 		services.NewPayPalService("Key"),
+		services.NewStripeService("Key2"),
 	})
 
 	buttons, err := aggregator.Aggregate(p.Price)

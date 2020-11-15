@@ -1,5 +1,7 @@
 package services
 
+import "sync"
+
 type IPaymentService interface {
-	GetButton(price int) (*PaymentButton, error)
+	GetButton(price int, wg *sync.WaitGroup, button chan *PaymentButton, err chan error)
 }

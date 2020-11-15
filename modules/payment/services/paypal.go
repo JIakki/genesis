@@ -5,37 +5,43 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"sync"
 )
 
 type PayPalService struct {
 	pubKey string
 }
 
-func (service *PayPalService) GetButton(price int) (*PaymentButton, error) {
+func (service *PayPalService) GetButton(price int, wg *sync.WaitGroup, buttonChan chan *PaymentButton, errorChan chan error) {
+	defer wg.Done()
 	var result map[string]interface{}
-	resp, err := http.Get(fmt.Sprintf("https://gock.com/payment/buttons/%d", price))
+	resp, err := http.Get(fmt.Sprintf("https://gock.com/payment/paypal/buttons/%d?pubKey=%s", price, service.pubKey))
 	if err != nil {
-		return nil, err
+		errorChan <- err
+		return
 	}
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err := json.Unmarshal([]byte(body), &result); err != nil {
-		return nil, err
+		errorChan <- err
+		return
 	}
 	name, ok := result["name"].(string)
 	if !ok {
-		return nil, fmt.Errorf("Paypay name does not exists")
+		errorChan <- fmt.Errorf("Paypal name does not exists")
+		return
 	}
 
 	url, ok := result["url"].(string)
 	if !ok {
-		return nil, fmt.Errorf("Paypay url does not exists")
+		errorChan <- fmt.Errorf("Paypal url does not exists")
+		return
 	}
 
-	return &PaymentButton{Name: name, URL: url}, err
+	buttonChan <- &PaymentButton{Name: name, URL: url}
 }
 
 func NewPayPalService(pubKey string) *PayPalService {
-	return &PayPalService{pubKey}
+	return &PayPalService{pubKey: pubKey}
 }

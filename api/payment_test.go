@@ -14,13 +14,17 @@ func TestGetPaymentButtons(t *testing.T) {
 	mux := http.NewServeMux()
 	router := NewPaymentHandler(mux, database)
 
-	defer gock.Off()
 	t.Run("returns buttons", func(t *testing.T) {
 		var result []map[string]interface{}
 		gock.New("https://gock.com").
-			Get("/payment/buttons/100").
+			Get("/payment/paypal/buttons/100").
 			Reply(200).
 			JSON(map[string]string{"name": "paypal", "url": "paypal-url"})
+		gock.New("https://gock.com").
+			Get("/payment/stripe/buttons/100").
+			Reply(200).
+			JSON(map[string]string{"name1": "stripe", "url1": "stripe-url"})
+		defer gock.Off()
 
 		request, _ := http.NewRequest(http.MethodPost, "/payment/buttons", nil)
 		writer := httptest.NewRecorder()
@@ -32,14 +36,22 @@ func TestGetPaymentButtons(t *testing.T) {
 			t.Errorf("%s", result)
 		}
 
-		if result[0]["URL"] != "paypal-url" {
+		if result[0]["URL"] != "stripe-url" {
+			t.Errorf("got %s, want %q", result[0]["URL"], "stripe-url")
+		}
+
+		if result[1]["URL"] != "paypal-url" {
 			t.Errorf("got %s, want %q", result[0]["URL"], "paypal-url")
 		}
 	})
 
 	t.Run("returns 500 if writer from services is invalid", func(t *testing.T) {
 		gock.New("https://gock.com").
-			Get("/payment/buttons/1").
+			Get("/payment/paypal/buttons/100").
+			Reply(200).
+			JSON(map[string]string{"fname": "paypal", "url": "paypal-url"})
+		gock.New("https://gock.com").
+			Get("/payment/stripe/buttons/100").
 			Reply(200).
 			JSON(map[string]string{"fname": "paypal", "url": "paypal-url"})
 		defer gock.Off()
@@ -54,9 +66,13 @@ func TestGetPaymentButtons(t *testing.T) {
 
 	t.Run("should returns X-Response-Time ", func(t *testing.T) {
 		gock.New("https://gock.com").
-			Get("/payment/buttons/1").
+			Get("/payment/paypal/buttons/100").
 			Reply(200).
 			JSON(map[string]string{"name": "paypal", "url": "paypal-url"})
+		gock.New("https://gock.com").
+			Get("/payment/stripe/buttons/100").
+			Reply(200).
+			JSON(map[string]string{"fname": "paypal", "url": "paypal-url"})
 		defer gock.Off()
 		request, _ := http.NewRequest(http.MethodPost, "/payment/buttons", nil)
 		writer := httptest.NewRecorder()

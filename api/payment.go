@@ -19,7 +19,7 @@ func NewPaymentHandler(mux *http.ServeMux, database *db.DB) *http.ServeMux {
 		case http.MethodPost:
 			ctrl.Execute(w, r)
 		default:
-			ctrl.Execute(w, r)
+			ctrl.NotFound(w, r, "404")
 		}
 	})
 
