@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/JIakki/genesis/api"
+	"github.com/JIakki/genesis/db"
 	"log"
 	"os"
 	"os/signal"
@@ -17,7 +18,9 @@ func main() {
 		log.Fatal("Please provide PORT variable")
 	}
 
-	srv := api.Create(&api.Params{Port: port})
+	database := db.New()
+	defer database.Close()
+	srv := api.Create(database, &api.Params{Port: port})
 
 	<-quit
 	log.Println("Shutdown Server ...")

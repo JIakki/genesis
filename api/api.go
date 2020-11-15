@@ -2,6 +2,7 @@ package api
 
 import (
 	"fmt"
+	"github.com/JIakki/genesis/db"
 	"log"
 	"net/http"
 )
@@ -10,14 +11,14 @@ type Params struct {
 	Port string
 }
 
-func Create(params *Params) *http.Server {
+func Create(db *db.DB, params *Params) *http.Server {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Here's Johnny!")
 	})
 
-	NewPaymentHandler(mux)
+	NewPaymentHandler(mux, db)
 
 	srv := &http.Server{
 		Addr:    fmt.Sprintf(":%s", params.Port),
