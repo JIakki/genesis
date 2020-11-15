@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"github.com/JIakki/genesis/api/controllers"
 	"github.com/JIakki/genesis/db"
 	"gopkg.in/h2non/gock.v1"
 	"net/http"
@@ -15,7 +16,7 @@ func TestGetPaymentButtons(t *testing.T) {
 	router := NewPaymentHandler(mux, database)
 
 	t.Run("returns buttons", func(t *testing.T) {
-		var result []map[string]interface{}
+		var result controllers.GetButtonsResponse
 		gock.New("https://gock.com").
 			Get("/payment/paypal/buttons/100").
 			Reply(200).
@@ -35,14 +36,21 @@ func TestGetPaymentButtons(t *testing.T) {
 		if writer.Code != 200 {
 			t.Errorf("%s", result)
 		}
+		url := result.Buttons[0].Url
 
-		if result[0]["url"] != "stripe-url" {
-			t.Errorf("got %s, want %q", result[0]["url"], "stripe-url")
+		if url != "stripe-url" {
+			t.Errorf("got %s, want %q", url, "stripe-url")
 		}
 
-		if result[1]["url"] != "paypal-url" {
-			t.Errorf("got %s, want %q", result[0]["url"], "paypal-url")
+		url = result.Buttons[1].Url
+		if url != "paypal-url" {
+			t.Errorf("got %s, want %q", url, "paypal-url")
 		}
+
+		if result.AppLink != "awasome-link-of-awasome-app" {
+			t.Errorf("got %s, want %q", result.AppLink, "awasome-link-of-awasome-app")
+		}
+
 	})
 
 	t.Run("returns 500 if writer from services is invalid", func(t *testing.T) {

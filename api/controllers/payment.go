@@ -28,7 +28,10 @@ func (ctrl *GetPaymentButtonsCtrl) Execute(w http.ResponseWriter, r *http.Reques
 		ctrl.InternalError(w, r, err)
 	}
 
-	ctrl.JSON(w, r, buttons)
+	// Форматер додає посилання на додаток постійно
+	// Якщо при завантаженні кнопок сталась помилка фронтендом,
+	// моментально можна перенаправити до магазинy
+	ctrl.JSON(w, r, NewButtonsFormatter().Format(buttons, "awasome-link-of-awasome-app"))
 }
 
 func NewGetPaymentButtonsCtrl(repo payment.IProductRepository) *GetPaymentButtonsCtrl {
