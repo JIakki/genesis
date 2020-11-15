@@ -7,7 +7,7 @@ type Aggregator struct {
 func (aggregator *Aggregator) Aggregate(price int) ([]*PaymentButton, error) {
 	var res []*PaymentButton
 	for _, service := range aggregator.services {
-		button, err := service.GetButton(10)
+		button, err := service.GetButton(price)
 		if err != nil {
 			return nil, err
 		}

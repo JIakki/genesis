@@ -5,16 +5,17 @@ import (
 	"log"
 	"net/http"
 	"os"
-	// "time"
+	"time"
 )
 
 type BaseController struct {
+	StartedAt time.Time
 }
 
 func (ctrl *BaseController) Response(w http.ResponseWriter, r *http.Request, message []byte, statusCode int) {
 	host, _ := os.Hostname()
 	w.Header().Set("X-Server-Name", host)
-	// w.Header().Set("X-Response-Time", time.Since(w.startedAt).String())
+	w.Header().Set("X-Response-Time", time.Now().Sub(ctrl.StartedAt).String())
 	w.WriteHeader(statusCode)
 	w.Write([]byte(message))
 }
@@ -37,4 +38,10 @@ func (ctrl *BaseController) InternalError(w http.ResponseWriter, r *http.Request
 
 func (ctrl *BaseController) NotFound(w http.ResponseWriter, r *http.Request, message string) {
 	ctrl.Response(w, r, []byte(message), 404)
+}
+
+func NewBaseController() *BaseController {
+	return &BaseController{
+		StartedAt: time.Now(),
+	}
 }

@@ -9,7 +9,7 @@ import (
 
 type GetPaymentButtonsCtrl struct {
 	ProductRepo payment.IProductRepository
-	core.BaseController
+	*core.BaseController
 }
 
 func (ctrl *GetPaymentButtonsCtrl) Execute(w http.ResponseWriter, r *http.Request) {
@@ -32,6 +32,7 @@ func (ctrl *GetPaymentButtonsCtrl) Execute(w http.ResponseWriter, r *http.Reques
 
 func NewGetPaymentButtonsCtrl(repo payment.IProductRepository) *GetPaymentButtonsCtrl {
 	return &GetPaymentButtonsCtrl{
-		ProductRepo: repo,
+		ProductRepo:    repo,
+		BaseController: core.NewBaseController(),
 	}
 }

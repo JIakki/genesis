@@ -13,5 +13,5 @@ func NewMapper(DB *db.DB) *ProductMapper {
 }
 
 func (mapper *ProductMapper) Find(fields []string, args ...interface{}) (*Product, error) {
-	return &Product{ID: 1, Price: 10, Name: "Awesome plan"}, nil
+	return &Product{ID: 1, Price: 100, Name: "Awesome plan"}, nil
 }

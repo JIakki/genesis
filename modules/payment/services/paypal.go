@@ -13,7 +13,7 @@ type PayPalService struct {
 
 func (service *PayPalService) GetButton(price int) (*PaymentButton, error) {
 	var result map[string]interface{}
-	resp, err := http.Get("https://gock.com/payment/buttons/1")
+	resp, err := http.Get(fmt.Sprintf("https://gock.com/payment/buttons/%d", price))
 	if err != nil {
 		return nil, err
 	}
