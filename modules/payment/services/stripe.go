@@ -12,7 +12,7 @@ type StripeService struct {
 	pubKey string
 }
 
-func (service *StripeService) GetButton(price int, wg *sync.WaitGroup, buttonChan chan *PaymentButton, errorChan chan error) {
+func (service *StripeService) GetButton(price int, wg *sync.WaitGroup, buttonChan chan GetButtonResponse, errorChan chan error) {
 	defer wg.Done()
 	var result map[string]interface{}
 	resp, err := http.Get(fmt.Sprintf("https://gock.com/payment/stripe/buttons/%d?pubKey=%s", price, service.pubKey))
@@ -39,7 +39,7 @@ func (service *StripeService) GetButton(price int, wg *sync.WaitGroup, buttonCha
 		return
 	}
 
-	buttonChan <- &PaymentButton{Name: name, URL: url}
+	buttonChan <- NewButtonFormatter().Format(&PaymentButton{Name: name, URL: url})
 }
 
 func NewStripeService(pubKey string) *StripeService {

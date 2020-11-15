@@ -8,12 +8,12 @@ type Aggregator struct {
 	services []IPaymentService
 }
 
-func (aggregator *Aggregator) Aggregate(price int) ([]*PaymentButton, error) {
+func (aggregator *Aggregator) Aggregate(price int) ([]GetButtonResponse, error) {
 	var wg sync.WaitGroup
-	var res []*PaymentButton
+	var res []GetButtonResponse
 
 	done := make(chan bool)
-	buttonChan := make(chan *PaymentButton)
+	buttonChan := make(chan GetButtonResponse)
 	errorChan := make(chan error)
 
 	wg.Add(len(aggregator.services))

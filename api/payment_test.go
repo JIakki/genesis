@@ -36,12 +36,12 @@ func TestGetPaymentButtons(t *testing.T) {
 			t.Errorf("%s", result)
 		}
 
-		if result[0]["URL"] != "stripe-url" {
-			t.Errorf("got %s, want %q", result[0]["URL"], "stripe-url")
+		if result[0]["url"] != "stripe-url" {
+			t.Errorf("got %s, want %q", result[0]["url"], "stripe-url")
 		}
 
-		if result[1]["URL"] != "paypal-url" {
-			t.Errorf("got %s, want %q", result[0]["URL"], "paypal-url")
+		if result[1]["url"] != "paypal-url" {
+			t.Errorf("got %s, want %q", result[0]["url"], "paypal-url")
 		}
 	})
 
