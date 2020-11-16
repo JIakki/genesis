@@ -1,47 +1,49 @@
 package services
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"sync"
 )
 
 type PayPalService struct {
 	pubKey string
+	price  int
 }
 
-func (service *PayPalService) GetButton(price int, wg *sync.WaitGroup, buttonChan chan GetButtonResponse, errorChan chan error) {
-	defer wg.Done()
+func (s *PayPalService) GetButton(ctx context.Context) (button GetButtonResponse, err error) {
 	var result map[string]interface{}
-	resp, err := http.Get(fmt.Sprintf("https://gock.com/payment/paypal/buttons/%d?pubKey=%s", price, service.pubKey))
+
+	req, err := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("https://gock.com/payment/paypal/buttons/%d?pubKey=%s", s.price, s.pubKey), nil)
 	if err != nil {
-		errorChan <- err
-		return
+		return button, err
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return button, err
 	}
 
 	defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err := json.Unmarshal([]byte(body), &result); err != nil {
-		errorChan <- err
-		return
+		return button, err
 	}
 	name, ok := result["name"].(string)
 	if !ok {
-		errorChan <- fmt.Errorf("Paypal name does not exists")
-		return
+		return button, fmt.Errorf("Paypal name does not exists")
 	}
 
 	url, ok := result["url"].(string)
 	if !ok {
-		errorChan <- fmt.Errorf("Paypal url does not exists")
-		return
+		return button, fmt.Errorf("Paypal url does not exists")
 	}
 
-	buttonChan <- NewButtonFormatter().Format(&PaymentButton{Name: name, URL: url})
+	return NewButtonFormatter().Format(&PaymentButton{Name: name, URL: url}), nil
 }
 
-func NewPayPalService(pubKey string) *PayPalService {
-	return &PayPalService{pubKey: pubKey}
+func NewPayPalService(pubKey string, price int) *PayPalService {
+	return &PayPalService{pubKey, price}
 }

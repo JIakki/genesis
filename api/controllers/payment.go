@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"context"
 	"github.com/JIakki/genesis/core"
 	"github.com/JIakki/genesis/modules/payment"
 	"github.com/JIakki/genesis/modules/payment/services"
@@ -13,17 +14,20 @@ type GetPaymentButtonsCtrl struct {
 }
 
 func (ctrl *GetPaymentButtonsCtrl) Execute(w http.ResponseWriter, r *http.Request) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	p, err := ctrl.ProductRepo.FindById(1)
 	if err != nil {
 		ctrl.InternalError(w, r, err)
 	}
 
 	aggregator := services.NewAggregator([]services.IPaymentService{
-		services.NewPayPalService("Key"),
-		services.NewStripeService("Key2"),
+		services.NewPayPalService("Key", p.Price),
+		services.NewStripeService("Key2", p.Price),
 	})
 
-	buttons, err := aggregator.Aggregate(p.Price)
+	buttons, err := aggregator.Aggregate(ctx)
 	if err != nil {
 		ctrl.InternalError(w, r, err)
 	}

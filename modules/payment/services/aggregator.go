@@ -1,6 +1,7 @@
 package services
 
 import (
+	"context"
 	"sync"
 )
 
@@ -8,33 +9,43 @@ type Aggregator struct {
 	services []IPaymentService
 }
 
-func (aggregator *Aggregator) Aggregate(price int) ([]GetButtonResponse, error) {
+func (aggregator *Aggregator) Aggregate(ctx context.Context) ([]GetButtonResponse, error) {
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	var wg sync.WaitGroup
 	var res []GetButtonResponse
 
-	done := make(chan bool)
-	buttonChan := make(chan GetButtonResponse)
-	errorChan := make(chan error)
+	done := make(chan struct{})
+	errChan := make(chan error, len(aggregator.services))
+	mu := sync.Mutex{}
 
-	wg.Add(len(aggregator.services))
 	go func() {
 		wg.Wait()
-		done <- true
+		done <- struct{}{}
 	}()
 
 	for _, service := range aggregator.services {
-		go service.GetButton(price, &wg, buttonChan, errorChan)
+		wg.Add(1)
+		go func(service IPaymentService) {
+			defer wg.Done()
+
+			button, err := service.GetButton(ctx)
+			if err != nil {
+				errChan <- err
+				return
+			}
+			mu.Lock()
+			res = append(res, button)
+			mu.Unlock()
+		}(service)
 	}
 
-	for {
-		select {
-		case button := <-buttonChan:
-			res = append(res, button)
-		case err := <-errorChan:
-			return nil, err
-		case <-done:
-			return res, nil
-		}
+	select {
+	case err := <-errChan:
+		return nil, err
+	case <-done:
+		return res, nil
 	}
 }
 

@@ -34,7 +34,7 @@ func TestGetPaymentButtons(t *testing.T) {
 		json.Unmarshal([]byte(writer.Body.String()), &result)
 
 		if writer.Code != 200 {
-			t.Errorf("%s", result)
+			t.Errorf("got %d, want 200", writer.Code)
 		}
 		url := result.Buttons[0].Url
 
